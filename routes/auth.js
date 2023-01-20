@@ -2,6 +2,7 @@ const express = require("express");
 const _ = require("lodash")
 const { Users } = require("../models/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
 const Joi = require("joi");
 const routers = express.Router()
 routers.use(express.json());
@@ -21,7 +22,8 @@ routers.get("/", async (req, res) => {
    if (!isValidPassword)
        return  res.status(400).send("Email je parol tuura emes");
 
-   res.send(true)
+   const token = jwt.sign({_id: user._id}, "8bMen1nOzDukAchkiychYm@.");
+   res.header("x-auth-token", token).send(true)
 })
 
 const validate = (user) => {
