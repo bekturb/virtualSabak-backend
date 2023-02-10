@@ -3,15 +3,14 @@ const routers = express.Router();
 const { Enrollments, validate } = require("../models/enrollment")
 const { Course } = require("../models/course")
 const { Customer } = require("../models/customer");
+const auth = require("../middleware/auth");
 routers.use(express.json());
 
-routers.get("/", async (req,res) => {
+routers.get("/",  auth, async (req,res) => {
     let enrollments = await Enrollments.find().sort("-dateStart");
     res.send(enrollments)
 });
-
-
-routers.post("/",async (req,res) => {
+routers.post("/",  auth,async (req,res) => {
     const {error} = validate(req.body)
 
     if (error)
@@ -51,7 +50,7 @@ routers.post("/",async (req,res) => {
     res.send(enrollment);
 });
 
-routers.get("/:id", async (req, res) => {
+routers.get("/:id",  auth, async (req, res) => {
 
     const enrollment = await Enrollments.findById(req.params.id);
 

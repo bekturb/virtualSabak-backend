@@ -2,12 +2,10 @@ const express = require("express");
 const _ = require("lodash")
 const { Users } = require("../models/user");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken")
 const Joi = require("joi");
-const routers = express.Router()
+const routers = express.Router();
 routers.use(express.json());
-
-routers.get("/", async (req, res) => {
+routers.post("/", async (req, res) => {
    const { error } = validate(req.body);
 
    if (error)
@@ -22,10 +20,9 @@ routers.get("/", async (req, res) => {
    if (!isValidPassword)
        return  res.status(400).send("Email je parol tuura emes");
 
-   const token = jwt.sign({_id: user._id}, "8bMen1nOzDukAchkiychYm@.");
+   const token = user.generateAuthToken();
    res.header("x-auth-token", token).send(true)
-})
-
+});
 const validate = (user) => {
     const validateSchema = Joi.object({
         email: Joi.string().required().email(),

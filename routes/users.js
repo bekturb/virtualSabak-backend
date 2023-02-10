@@ -2,15 +2,16 @@ const express = require("express");
 const _ = require("lodash")
 const {Users, validate} = require("../models/user");
 const bcrypt = require("bcrypt");
+const auth = require("../middleware/auth");
 const routers = express.Router()
 routers.use(express.json());
 
-routers.get("/",  async(req, res) => {
-    const users = await Users.find().sort("name");
+routers.get("/me",  auth,  async(req, res) => {
+    const users = await Users.findById(req.user._id).select("-password");
     res.send(users)
 });
 
-routers.post("/", async(req, res) => {
+routers.post("/",  async(req, res) => {
     const {error} = validate(req.body);
 
     if (error)
@@ -20,16 +21,15 @@ routers.post("/", async(req, res) => {
     if (user)
         return res.status(400).send("Myndai email koldongon koldonuuchu bar")
 
-     user = new Users(_.pick(req.body, ["name", "email", "password"]))
+     user = new Users(_.pick(req.body, ["name", "email", "password", "isAdmin"]))
 
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, salt);
-    // await  user.save();
-    res.send(_.pick(user, ["_id", "name", "email"]))
+    await  user.save();
+    res.send(_.pick(user, ["_id", "name", "email", "isAdmin"]))
 });
 
-
-routers.get("/:id", async(req, res) => {
+routers.get("/:id",  auth, async(req, res) => {
     const user = await Users.findById(req.params.id);
      if (!user)
          return res.send("Berilgen idge ylaiyk kelgen koldonuuchu jok!")
@@ -37,7 +37,7 @@ routers.get("/:id", async(req, res) => {
     res.send(user)
 });
 
-routers.put("/:id", async(req, res) => {
+routers.put("/:id",  auth, async(req, res) => {
 
     const {error} = validate(req.body);
 
@@ -53,7 +53,7 @@ routers.put("/:id", async(req, res) => {
     res.send(user)
 });
 
-routers.delete("/:id", async(req, res) => {
+routers.delete("/:id",  auth, async(req, res) => {
     const user = await Users.findByIdAndRemove(req.params.id);
 
     if (!user)

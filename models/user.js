@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const jwt = require("jsonwebtoken");
+const config = require("config");
+
 
 const validateEmail = function(email) {
     const re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     return re.test(email)
 };
 
-const Users = mongoose.model("Users", new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name:{
         type: String,
         trim: true,
@@ -25,14 +28,26 @@ const Users = mongoose.model("Users", new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    isAdmin: {
+        type: Boolean,
+        required: true
     }
-}));
+});
+
+userSchema.methods.generateAuthToken = function() {
+    const token = jwt.sign({_id: this._id, isAdmin: this.isAdmin}, config.get("jwtPrivateKey"));
+    return token;
+}
+
+const Users = mongoose.model("Users", userSchema);
 
 const validateUser = (user) => {
     const validateSchema = Joi.object({
         name: Joi.string().required().trim().min(3).max(100),
         email: Joi.string().required().email(),
-        password: Joi.string().required()
+        password: Joi.string().required(),
+        isAdmin: Joi.boolean().required()
     });
 
     return validateSchema.validate(user);

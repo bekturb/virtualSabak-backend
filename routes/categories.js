@@ -1,14 +1,18 @@
+require("express-async-errors");
 const express = require("express");
 const routers = express.Router();
-const { Category, validateCategory } = require("../models/category")
+const { Category, validateCategory } = require("../models/category");
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
 routers.use(express.json());
 
-routers.get("/", async (req,res) => {
-    const resultBooks =  await Category.find().sort("name")
-    res.send(resultBooks)
+routers.get("/", auth, async (req,res) => {
+    throw new Error("Kategoriyani alyshta kutulbogon kata berdi!")
+        const resultBooks =  await Category.find().sort("name")
+        res.send(resultBooks);
 })
 
-routers.get("/:id",async (req,res) => {
+routers.get("/:id", auth,async (req,res) => {
     const category = await Category.findById(req.params.id);
     if (!category){
         res.send("Berilgen idge ylaiyk kelgen categoriya jok");
@@ -16,7 +20,7 @@ routers.get("/:id",async (req,res) => {
     res.send(category);
 });
 
-routers.post("/",async (req,res) => {
+routers.post("/", auth, async (req,res) => {
 
     const {error} = validateCategory(req.body);
 
@@ -34,7 +38,7 @@ routers.post("/",async (req,res) => {
     }
 })
 
-routers.put("/:id", async (req,res) => {
+routers.put("/:id", auth, async (req,res) => {
     const {error} = validateCategory(req.body);
 
     if (error) {
@@ -48,7 +52,7 @@ routers.put("/:id", async (req,res) => {
 
 });
 
-routers.delete("/:id", async (req,res) => {
+routers.delete("/:id", [auth, admin], async (req,res) => {
     const category = await Category.findByIdAndRemove(req.params.id);
 
     if (!category){

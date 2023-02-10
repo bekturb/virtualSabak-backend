@@ -2,14 +2,15 @@ const express = require("express");
 const routers = express.Router();
 const { Course, validate } = require("../models/course");
 const {Category} = require("../models/category");
+const auth = require("../middleware/auth");
 routers.use(express.json());
 
-routers.get("/", async (req,res) => {
+routers.get("/", auth, async (req,res) => {
     let courses = await Course.find().sort("title");
     res.send(courses)
 });
 
-routers.post("/", async  (req, res) => {
+routers.post("/", auth, async  (req, res) => {
     const {error} = validate(req.body);
 
     if (error)
@@ -35,14 +36,14 @@ routers.post("/", async  (req, res) => {
     res.send(course);
 });
 
-routers.get("/:id", async (req,res) => {
+routers.get("/:id",  auth, async (req,res) => {
     const course = await Course.findById(req.params.id);
     if (!course)
         res.send("Berilgen Id ge ylaiyktuu klient jok");
         res.send(course)
 });
 
-routers.put("/:id", async(req,res) => {
+routers.put("/:id",  auth, async(req,res) => {
     const {error} = validate(req.body);
 
     if (error)
@@ -69,7 +70,7 @@ routers.put("/:id", async(req,res) => {
     res.send(course)
 });
 
-routers.delete("/:id", async (req,res) => {
+routers.delete("/:id",  auth, async (req,res) => {
     const course = await Course.findByIdAndRemove(req.params.id);
     if (!course)
         res.send("Berilgen Id ge ylaiyktuu klient jok");
